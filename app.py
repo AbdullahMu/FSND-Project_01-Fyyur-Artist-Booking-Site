@@ -234,7 +234,7 @@ def show_venue(venue_id):
     "past_shows_count": len(past_shows),
     "upcoming_shows_count": len(upcoming_shows),
   }
-  
+
   return render_template('pages/show_venue.html', venue=data)
 
 #  Create Venue
@@ -255,6 +255,45 @@ def create_venue_submission():
   # TODO: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+
+ # initialize an error handling variable to capture any error and exceptions in the following the try statement
+    error = False
+
+  try:
+
+ # parse the entry of the venue table
+    name = request.form['name']
+    city = request.form['city']
+    state = request.form['state']
+    address = request.form['address']
+    phone = request.form['phone']
+    genres = request.form.getlist('genres')
+    image_link = request.form['image_link']
+    facebook_link = request.form['facebook_link']
+    website = request.form['website']
+    seeking_talent = True if 'seeking_talent' in request.form else False
+    seeking_description = request.form['seeking_description']
+
+ # parse the entry of the venue table
+    venue = Venue(name=name, city=city, state=state, address=address, phone=phone, genres=genres, facebook_link=facebook_link, image_link=image_link, website=website, seeking_talent=seeking_talent, seeking_description=seeking_description)
+    db.session.add(venue)
+    db.session.commit()
+
+  except:
+ # rollback pending changes on error
+    error = True
+    db.session.rollback()
+    print(sys.exc_info())
+
+  finally:
+ # close curent session
+    db.session.close()
+
+ # parse venue submission message
+  if error:
+    flash('An error occurred. Venue ' + request.form['name']+ ' could not be listed.')
+  if not error:
+    flash('Venue ' + request.form['name'] + ' was successfully listed!')
   return render_template('pages/home.html')
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
@@ -262,25 +301,46 @@ def delete_venue(venue_id):
   # TODO: Complete this endpoint for taking a venue_id, and using
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
 
-  # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
+ # initialize an error handling variable to capture any error and exceptions in the following the try statement
+  error = False
+
+  try:
+ # retrieve entry of the venue table by input venue_id and delete it
+    venue = Venue.query.get(venue_id)
+    db.session.delete(venue)
+    db.session.commit()
+
+  except:
+# rollback pending changes on error
+    error = True
+    db.session.rollback()
+    print(sys.exc_info())
+
+  finally:
+# close curent session
+    db.session.close()
+
+# parse venue submission message
+  if error:
+    flash(f'An error occurred. Venue {venue_id} could not be deleted.')
+  if not error:
+    flash(f'Venue {venue_id} was successfully deleted.')
+  return render_template('pages/home.html')
+
+ '''
+ # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
   return None
+'''
 
 #  Artists
 #  ----------------------------------------------------------------
 @app.route('/artists')
 def artists():
   # TODO: replace with real data returned from querying the database
-  data=[{
-    "id": 4,
-    "name": "Guns N Petals",
-  }, {
-    "id": 5,
-    "name": "Matt Quevedo",
-  }, {
-    "id": 6,
-    "name": "The Wild Sax Band",
-  }]
+
+  # retrieve all entries in artist table
+  data = db.session.query(Artist).all()
   return render_template('pages/artists.html', artists=data)
 
 @app.route('/artists/search', methods=['POST'])
@@ -288,13 +348,25 @@ def search_artists():
   # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
   # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
   # search for "band" should return "The Wild Sax Band".
+
+  # parse search term and use it for filter the query
+  search_term = request.form.get('search_term', '')
+  search_result = db.session.query(Artist).filter(Artist.name.ilike(f'%{search_term}%')).all()
+
+  data = []
+
+  # loop over all search results from returned query and append it to list
+  for result in search_result:
+    data.append({
+      "id": result.id,
+      "name": result.name,
+      "num_upcoming_shows": len(db.session.query(Show).filter(Show.artist_id == result.id).filter(Show.start_time > datetime.now()).all()),
+    })
+
+  # parse response dictionary
   response={
-    "count": 1,
-    "data": [{
-      "id": 4,
-      "name": "Guns N Petals",
-      "num_upcoming_shows": 0,
-    }]
+    "count": len(search_result),
+    "data": data
   }
   return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
 
