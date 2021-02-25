@@ -53,6 +53,33 @@ class Venue(db.Model):
     genres = db.Column(db.String(500))
     shows = db.relationship('Show', backref='Venue', lazy='dynamic')
 
+    def __repr__(self):
+        return f'''<Venue ID: {self.id}, name: {self.name}, city: {self.name},
+        state: {self.state}, image: {self.image_link}, address: {self.address},
+        phone: {self.phone}, facebook: {self.facebook_link},
+        description: {self.description}, seeking_talent: {self.seeking_talent},
+        website: {self.website}, genres: {self.genres}'''
+
+
+city = db.Column(db.String(120))
+state = db.Column(db.String(120))
+address = db.Column(db.String(120))
+phone = db.Column(db.String(120))
+image_link = db.Column(db.String(500))
+facebook_link = db.Column(db.String(120))
+
+# TODO: implement any missing fields, as a database migration using Flask-Migrate
+description = db.Column(db.String(500), default='')
+seeking_talent = db.Column(db.Boolean, default=False)
+website = db.Column(db.String(120))
+genres = db.Column(db.String(500))
+shows = db.relationship('Show', backref='Venue', lazy='dynamic')
+
+
+
+
+
+
 class Artist(db.Model):
     __tablename__ = 'Artist'
 
