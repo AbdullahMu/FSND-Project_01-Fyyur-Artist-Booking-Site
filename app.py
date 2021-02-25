@@ -24,7 +24,7 @@ moment = Moment(app)
 # load configurations from config.py
 app.config.from_object('config')
 
-# Alternatively, set configurations manually
+# Alternatively, set configurations manually:
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:xyz@localhost:5432/todoapp'
 # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -37,7 +37,6 @@ migrate = Migrate(app, db)
 
 class Venue(db.Model):
     __tablename__ = 'Venue'
-
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     city = db.Column(db.String(120))
@@ -48,6 +47,11 @@ class Venue(db.Model):
     facebook_link = db.Column(db.String(120))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    description = db.Column(db.String(500), default='')
+    seeking_talent = db.Column(db.Boolean, default=False)
+    website = db.Column(String(120))
+    genres = db.Column(db.String(500))
+    shows = db.relationship('Show', backref='Venue', lazy='dynamic')
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
