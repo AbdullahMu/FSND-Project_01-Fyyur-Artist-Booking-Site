@@ -204,24 +204,23 @@ def search_venues():
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
 
   # parse search term and use it for filter the query
-   search_result = db.session.query(Venue).filter(Venue.name.like('%' + request.form.get('search_term', '') + '%')).all()
-
-  data = []
+    search_result = db.session.query(Venue).filter(Venue.name.like('%' + request.form.get('search_term', '') + '%')).all()
+    data = []
 
   # loop over all search results from returned query and append it to list
-  for result in search_result:
-    data.append({
-      "id": result.id,
-      "name": result.name,
-      "num_upcoming_shows": len(db.session.query(Show).filter(Show.venue_id == result.id).filter(Show.start_time > datetime.now()).all()),
-    })
+    for result in search_result:
+        data.append({
+                    "id": result.id,
+                    "name": result.name,
+                    "num_upcoming_shows": len(db.session.query(Show).filter(Show.venue_id == result.id).filter(Show.start_time > datetime.now()).all()),
+                        })
  # parse response dictionary
-  response={
-    "count": len(search_result),
-    "data": data
-  }
+    response={
+                "count": len(search_result),
+                "data": data
+                }
 
-  return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
+    return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
