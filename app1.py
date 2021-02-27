@@ -179,26 +179,22 @@ def venues():
 
 
   # a query on Venues table aggregated by city and state names (areas)
-    areas = Venue.query.with_entities(func.count(Venue.id), Venue.city, Venue.state).group_by(Venue.city, Venue.state).all()
+    areas = Venue.query.distinct(Venue.city, Venue.state).with_entities(Venue.city, Venue.state).all()
     data = []
+    current_time = datetime.now()
 
   #loop over all areas to check for upcoming shows
     for area in areas:
-        venues = Venue.query.filter_by(state=area.state).filter_by(city=area.city).all()
-        venue_data = []
-        for venue in venues:
-            venue_data.append({
+        area_data = dict()
+        area_data['city'], area_data['state'] = area
+        venues = Venue.query.filter_by(city=area_data['city']).filter_by(state=area_data['state']).all()
+        area_data['venues'] = [{
                 "id": venue.id,
                 "name": venue.name,
-                "num_upcoming_shows": len(db.session.query(Show).filter(Show.venue_id==1).filter(Show.start_time>datetime.now()).all())
-                  })
+                "num_upcoming_shows": db.session.query(func.count(Show.id)).filter(Show.venue_id==venue.id, Show.start_time>current_time).all()[0][0]
+                  } for venue in venues]
+        data.append(area_data)
 
-    # append retrieved info to output data list
-            data.append({
-              "city": area.city,
-              "state": area.state,
-              "venues": venue_data
-                })
     return render_template('pages/venues.html', areas=data);
 
 @app.route('/venues/search', methods=['POST'])
@@ -208,8 +204,7 @@ def search_venues():
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
 
   # parse search term and use it for filter the query
-  search_term = request.form.get('search_term', '')
-  search_result = db.session.query(Venue).filter(Venue.name.ilike(f'%{search_term}%')).all()
+   search_result = db.session.query(Venue).filter(Venue.name.like('%' + request.form.get('search_term', '') + '%')).all()
 
   data = []
 
