@@ -11,4 +11,6 @@ DEBUG = True
 
 # TODO IMPLEMENT DATABASE URL
 SQLALCHEMY_DATABASE_URI = 'postgresql://postgres@localhost:5432/fyyur'
+
+# set this configuration to True or False to avoid significant overhead and suppress this warnings
 SQLALCHEMY_TRACK_MODIFICATIONS = False
