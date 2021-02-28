@@ -56,7 +56,7 @@ class Venue(db.Model):
     shows = db.relationship('Show', backref='venue', lazy='dynamic')
 
     def __repr__(self) -> str:
-        return '{' + f'''
+        return f'''
             'id': {self.id},
             'name': {self.name},
             'city': {self.city},
@@ -68,7 +68,8 @@ class Venue(db.Model):
             'description': {self.description},
             'seeking_talent': {self.seeking_talent},
             'website': {self.website},
-            'genres': {self.genres}''' + '}'
+            'genres': {self.genres}
+            '''
 
 class Artist(db.Model):
     __tablename__ = 'artist'
@@ -88,7 +89,7 @@ class Artist(db.Model):
     shows = db.relationship('Show', backref="artist", lazy='dynamic')
 
     def __repr__(self) -> str:
-        return '{' + f'''
+        return f'''
         'id': {self.id},
         'name': {self.name},
         'city': {self.city},
@@ -98,7 +99,8 @@ class Artist(db.Model):
         'genres': {self.genres},
         'facebook_link': {self.facebook_link},
         'seeking_venue': {self.seeking_venue},
-        'seeking_description': {self.seeking_description}''' + '}'
+        'seeking_description': {self.seeking_description}
+        '''
 
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
@@ -111,11 +113,12 @@ class Show(db.Model):
   start_time = db.Column(db.DateTime, nullable=False)
 
   def __repr__(self) -> str:
-      return '{' + f'''
+      return f'''
             'id': {self.id},
             'artist_id': {self.artist_id},
             'venue_id': {self.venue_id},
-            'start_time': {self.start_time}''' + '}'
+            'start_time': {self.start_time}
+            '''
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
