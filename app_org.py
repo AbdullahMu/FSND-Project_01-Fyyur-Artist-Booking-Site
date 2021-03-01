@@ -142,6 +142,63 @@ def search_venues():
 def show_venue(venue_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
+
+   # query venues table by input venue_id
+   venue = Venue.query.get(venue_id)
+
+   current_time = datetime.now()
+
+   # find past and upcoming shows using input venue_id and current time to filter query on showw table
+   shows_query = db.session.query(Show).join(Artist).with_entities(Show.artist_id, Artist.name, Artist.image_link, Show.start_time).filter(Show.venue_id == venue_id).all()
+
+   past_shows = list()
+   upcoming_shows = list()
+
+   shows_query_attributes = shows_query[0]._asdict().keys()
+
+   for show in shows_query:
+       shows_data = dict()
+       for attribute in shows_query_attributes:
+           if attribute in ['name', 'image_link']:
+               shows_data['artist_' + attribute] = show._asdict()[attribute]
+           else:
+               shows_data[attribute] = show._asdict()[attribute]
+
+       if show.start_time > current_time:
+           upcoming_shows.append(shows_data)
+       else:
+           past_shows.append(shows_data)
+
+    data = dict()
+
+    # parse returned data dictionary
+    data = {
+      "id": venue.id,
+      "name": venue.name,
+      "genres": venue.genres,
+      "address": venue.address,
+      "city": venue.city,
+      "state": venue.state,
+      "phone": venue.phone,
+      "website": venue.website,
+      "facebook_link": venue.facebook_link,
+      "seeking_talent": venue.seeking_talent,
+      "seeking_description": venue.seeking_description,
+      "image_link": venue.image_link,
+      "past_shows": past_shows,
+      "upcoming_shows": upcoming_shows,
+      "past_shows_count": len(past_shows),
+      "upcoming_shows_count": len(upcoming_shows),
+    }
+
+
+
+
+
+
+
+
+
   data1={
     "id": 1,
     "name": "The Musical Hop",
@@ -267,6 +324,12 @@ def artists():
     "name": "The Wild Sax Band",
   }]
   return render_template('pages/artists.html', artists=data)
+
+
+
+
+# ===== HERE
+
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
