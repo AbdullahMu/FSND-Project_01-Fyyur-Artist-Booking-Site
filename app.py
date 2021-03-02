@@ -439,12 +439,12 @@ def edit_artist_submission(artist_id):
         else:
             artist[attribute] = request.form[attribute]
 
-    db.session.query(Artist).filter(Artist.id == artist_id).update(artist, synchronize_session="fetch")
-    # commit ORM object changes to database
-    db.session.commit()
-except Exception as error:
+      db.session.query(Artist).filter(Artist.id == artist_id).update(artist, synchronize_session="fetch")
+      # commit ORM object changes to database
+      db.session.commit()
+  except Exception as error:
     # rollback pending changes on error
-    db.session.rollback()
+      db.session.rollback()
 
 
   finally:
@@ -486,19 +486,18 @@ def edit_venue_submission(venue_id):
           else:
               venue[attribute] = request.form[attribute]
 
-      db.session.query(Venue).filter(Venue.id == venue_id).update(venue, synchronize_session="fetch")
-      # commit ORM object changes to database
-      db.session.commit()
+        db.session.query(Venue).filter(Venue.id == venue_id).update(venue, synchronize_session="fetch")
+        # commit ORM object changes to database
+        db.session.commit()
     except Exception as error:
-      # rollback pending changes on error
-      db.session.rollback()
-
+        # rollback pending changes on error
+        db.session.rollback()
 
     finally:
       # close current session and parse submission message
       db.session.close()
 
-  return redirect(url_for('show_venue', venue_id=venue_id))
+    return redirect(url_for('show_venue', venue_id=venue_id))
 
 #  Create Artist
 #  ----------------------------------------------------------------
@@ -529,22 +528,20 @@ def create_artist_submission():
           else:
               artist[attribute] = request.form[attribute]
 
-      artist = Artist(**artist)
+        artist = Artist(**artist)
 
-      db.session.add(artist)
-      # commit ORM object changes to database
-      db.session.commit()
-  except Exception as error:
-      # rollback pending changes on error
-      db.session.rollback()
-
+        db.session.add(artist)
+        # commit ORM object changes to database
+        db.session.commit()
+    except Exception as error:
+        # rollback pending changes on error
+        db.session.rollback()
 
     finally:
       # close current session and parse submission message
       db.session.close()
 
-
-  return render_template('pages/home.html')
+    return render_template('pages/home.html')
 
 
 #  Shows
@@ -592,7 +589,7 @@ def create_show_submission():
     db.session.add(show)
     db.session.commit()
     flash('Show was successfully listed!')
-except Exception as error:
+  except Exception as error:
   # rollback pending changes on error
     db.session.rollback()
     flash('An error occurred. Show could not be listed.')
