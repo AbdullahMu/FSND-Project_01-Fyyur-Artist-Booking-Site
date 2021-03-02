@@ -53,7 +53,7 @@ class Venue(db.Model):
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
     description = db.Column(db.String(500), default='')
     seeking_talent = db.Column(db.Boolean, default=False, nullable=False)
-    seeking_description = description = db.Column(db.String(500), default='')
+    seeking_description = db.Column(db.String(500), default='')
     website = db.Column(db.String(120), nullable=True)
     genres = db.Column(db.String(500))
     shows = db.relationship('Show', backref='venue', lazy='dynamic')
