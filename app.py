@@ -53,15 +53,11 @@ class Venue(db.Model):
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
     description = db.Column(db.String(500), default='')
     seeking_talent = db.Column(db.Boolean, default=False, nullable=False)
+    seeking_description = description = db.Column(db.String(500), default='')
     website = db.Column(db.String(120), nullable=True)
     genres = db.Column(db.String(500))
     shows = db.relationship('Show', backref='venue', lazy='dynamic')
 
-    # def __repr__(self) -> str:
-    #     table = inspect(self)
-    #     key_value_pairs = " ".join([f"{attribute.key}={attribute.loaded_value!r}"
-    #                       for attribute in table.attrs])
-    #     return f"<Venue {key_value_pairs}>"
     def __repr__(self) -> str:
         return f'<Venue id: {self.id}, \
         name: {self.name}, \
@@ -73,26 +69,10 @@ class Venue(db.Model):
         facebook_link: {self.facebook_link}, \
         description: {self.description}, \
         seeking_talent: {self.seeking_talent}, \
+        seeking_description: {self.seeking_description}, \
         website: {self.website}, \
         genres: {self.genres}>'
 
-    # def as_dictionary(self) -> dict:
-    #     '''
-    #     '''
-    #     return {
-    #         'id': self.id,
-    #         'name': self.name,
-    #         'city': self.city,
-    #         'state': self.state,
-    #         'image_link': self.image_link,
-    #         'address': self.address,
-    #         'phone': self.phone,
-    #         'facebook_link': self.facebook_link,
-    #         'description': self.description,
-    #         'seeking_talent': self.seeking_talent,
-    #         'website': self.website,
-    #         'genres': self.genres
-    #     }
 
 class Artist(db.Model):
     __tablename__ = 'artist'
@@ -121,25 +101,9 @@ class Artist(db.Model):
         image_link: {self.image_link}, \
         genres: {self.genres}, \
         facebook_link: {self.facebook_link}, \
+        website: {self.website}, \
         seeking_venue: {self.seeking_venue}, \
         seeking_description: {self.seeking_description}>'
-
-    # def as_dictionary(self) -> dict:
-    #     '''
-    #     '''
-    #     return {
-    #         'id': self.id,
-    #         'name': self.name,
-    #         'city': self.city,
-    #         'state': self.state,
-    #         'phone': self.phone,
-    #         'image_link': self.image_link,
-    #         'genres': self.genres,
-    #         'facebook_link': self.facebook_link,
-    #         'seeking_venue': self.seeking_venue,
-    #         'seeking_description': self.seeking_description
-    #     }
-
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 class Show(db.Model):
@@ -156,13 +120,6 @@ class Show(db.Model):
         venue_id: {self.venue_id}, \
         start_time: {self.start_time}>'
 
-    # def as_dictionary(self) -> dict:
-    #     return {
-    #         'id': self.id,
-    #         'artist_id': self.artist_id,
-    #         'venue_id': self.venue_id,
-    #         'start_time': self.start_time
-    #         }
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
@@ -420,51 +377,41 @@ def show_artist(artist_id):
 
     # query artist table by input artist_id
     # query venues table by input venue_id
-    artist = Artist.query.get(artist_id)
+    artist = session.query(Artist).with_entities(Artist.id, Artist.name, Artist.genres, Artist.city, Artist.state, Artist.phone, Artist.website, Artist.facebook_link, Artist.seeking_venue, Artist.seeking_description, Artist.image_link).filter(Artist.id == artist_id).all()
+    shows_query = session.query(Show).join(Venue).with_entities(Venue.id, Venue.name, Venue.image_link, Show.start_time).filter(Show.artist_id == artist_id).all()
+    current_time = datetime.now().strftime('%Y-%m-%d %H:%S:%M')
 
-    current_time = datetime.now()
+    data = dict()
 
-    # find past and upcoming shows using input venue_id and current time to filter query on showw table
-    shows_query = db.session.query(Show).join(Venue).with_entities(Show.artist_id, Artist.name, Artist.image_link, Show.start_time).filter(Show.artist_id == artist_id).all()
+    artist = artist[0]._asdict()
+    artist_attributes = artist.keys()
+
+    shows_query_attributes = shows_query[0]._asdict().keys()
+
+    for attribute in artist_attributes:
+        data[attribute] = artist[attribute]
 
     past_shows = list()
     upcoming_shows = list()
 
-    shows_query_attributes = shows_query[0]._asdict().keys()
-
     for show in shows_query:
         shows_data = dict()
         for attribute in shows_query_attributes:
-            if attribute in ['name', 'image_link']:
-                shows_data['artist_' + attribute] = show._asdict()[attribute]
-            else:
+            if attribute == 'start_time':
                 shows_data[attribute] = show._asdict()[attribute]
-
-            if show.start_time > current_time:
-                upcoming_shows.append(shows_data)
             else:
-                past_shows.append(shows_data)
+                shows_data['venue_' + attribute] = show._asdict()[attribute]
 
-    data = dict()
+        if show.start_time > current_time:
+            upcoming_shows.append(shows_data)
+        else:
+            past_shows.append(shows_data)
 
-    # parse returned data dictionary
-    # data = {
-    #     "id": artist_query.id,
-    #     "name": artist_query.name,
-    # "genres": artist_query.genres,
-    # "city": artist_query.city,
-    # "state": artist_query.state,
-    # "phone": artist_query.phone,
-    # "website": artist_query.website,
-    # "facebook_link": artist_query.facebook_link,
-    # "seeking_venue": artist_query.seeking_venue,
-    # "seeking_description": artist_query.seeking_description,
-    # "image_link": artist_query.image_link,
-    # "past_shows": past_shows,
-    # "upcoming_shows": upcoming_shows,
-    # "past_shows_count": len(past_shows),
-    # "upcoming_shows_count": len(upcoming_shows),
-    # }
+    data['past_shows'] = past_shows
+    data['past_shows_count'] = len(past_shows)
+
+    data['upcoming_shows'] = upcoming_shows
+    data['upcoming_shows_count'] = len(upcoming_shows)
 
     return render_template('pages/show_artist.html', artist=data)
 
