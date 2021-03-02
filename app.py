@@ -1,22 +1,20 @@
-#----------------------------------------------------------------------------#
+# --------------------------------------------------------------------------- #
 # Imports
-#----------------------------------------------------------------------------#
-
-import json
-import dateutil.parser
-import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for
+# --------------------------------------------------------------------------- #
+from flask import Flask, render_template, request, flash, redirect, url_for
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 import logging
 from logging import Formatter, FileHandler
+import dateutil.parser
+import babel
 from flask_wtf import Form
 from forms import *
 from flask_migrate import Migrate
 from sqlalchemy.orm import load_only
 from sqlalchemy import func, and_
 from sqlalchemy.inspection import inspect
-from models import *
+from models import*
 #----------------------------------------------------------------------------#
 # app Config.
 #----------------------------------------------------------------------------#
@@ -66,13 +64,13 @@ def venues():
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
 
-  # a query on Venues table aggregated by city and state names (areas)
+    # a query on Venues table aggregated by city and state names (areas)
     distinct_areas = Venue.query.options(load_only('city', 'state')).with_entities(Venue.city, Venue.state).distinct(Venue.city, Venue.state).all()
-# options(load_only(
+    # options(load_only(
     data = list()
     current_time = datetime.now()
 
-  #loop over all areas to check for upcoming shows
+    #loop over all areas to check for upcoming shows
     for area in distinct_areas:
         area_data = dict()
         area_data['city'], area_data['state'] = area
@@ -92,7 +90,7 @@ def search_venues():
   # seach for Hop should return "The Musical Hop".
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
 
-  # parse search term and use it for filter the query
+    # parse search term and use it for filter the query
     search_term = request.form.get('search_term', '')
     venue_search_result = db.session.query(Venue).options(load_only('id', 'name')).filter(Venue.name.like(f'%{search_term}%')).all()
     response = dict()
@@ -100,7 +98,7 @@ def search_venues():
     data = list()
     current_time = datetime.now()
 
-  # loop over all search results from returned query and append it to list
+    # loop over all search results from returned query and append it to list
     for venue in venue_search_result:
         venue_response = dict()
         venue_response['id'], venue_response['name'] = venue.id, venue.name
@@ -108,7 +106,7 @@ def search_venues():
         venue_response['num_upcoming_shows'] = len(upcoming_shows)
         data.append(venue_response)
 
- # parse response dictionary
+    # parse response dictionary
     response['data'] = data
 
     return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
@@ -177,7 +175,7 @@ def create_venue_submission():
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
 
 
-# parse the entry of the venue table
+    # parse the entry of the venue table
     data = dict()
     venue_table_attributes = inspect(Venue).c
     for attribute in venue_table_attributes:
@@ -187,7 +185,6 @@ def create_venue_submission():
             data[attribute.name] = bool(request.form[attribute.name])
         else:
             data[attribute.name] = request.form[attribute.name]
- # initialize an error handling variable to capture any error and exceptions in the following the try statement
 
     try:
         venue = Venue(**data)
@@ -196,12 +193,12 @@ def create_venue_submission():
         flash('Venue ' + data['name'] + ' was successfully listed!')
 
     except Exception as error:
-     # rollback pending changes on error
+        # rollback pending changes on error
         db.session.rollback()
         flash('An error occurred. Venue ' + data['name'] + ' could not be listed.')
 
     finally:
-     # close current session
+        # close current session
         db.session.close()
 
     return render_template('pages/home.html')
@@ -212,19 +209,19 @@ def delete_venue(venue_id):
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
 
   try:
- # retrieve entry of the venue table by input venue_id and delete it
+    # retrieve entry of the venue table by input venue_id and delete it
     venue = Venue.query.get(venue_id)
     db.session.delete(venue)
     db.session.commit()
     flash(f'Venue {venue_id} was successfully deleted.')
 
   except Exception as error:
-# rollback pending changes on error
+    # rollback pending changes on error
     db.session.rollback()
     flash(f'An error occurred. Venue {venue_id} could not be deleted.')
 
   finally:
-# close curent session
+    # close curent session
     db.session.close()
 
   return None
@@ -261,7 +258,7 @@ def search_artists():
   data = list()
   current_time = datetime.now()
 
-# loop over all search results from returned query and append it to list
+  # loop over all search results from returned query and append it to list
   for artist in artists_search_result:
       artist_response = dict()
       artist_response['id'], artist_response['name'] = venue.id, venue.name
@@ -269,7 +266,7 @@ def search_artists():
       artist_response['num_upcoming_shows'] = len(upcoming_shows)
       data.append(artist_response)
 
-# parse response dictionary
+  # parse response dictionary
   response['data'] = data
 
   return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
@@ -358,7 +355,7 @@ def edit_artist_submission(artist_id):
       # commit ORM object changes to database
       db.session.commit()
   except Exception as error:
-    # rollback pending changes on error
+      # rollback pending changes on error
       db.session.rollback()
 
 
@@ -492,25 +489,25 @@ def create_show_submission():
 
 
   try:
-  # assign submitted values to attributes
+    # assign submitted values to attributes
     form_data = dict()
     form_data['artist_id'] = request.form['artist_id']
     form_data['venue_id'] = request.form['venue_id']
     form_data['start_time'] = request.form['start_time']
 
 
-  # parse the entry from submitted values by creating an ORM object then insert it to database
+    # parse the entry from submitted values by creating an ORM object then insert it to database
     show = Show(**form_data)
     db.session.add(show)
     db.session.commit()
     flash('Show was successfully listed!')
   except Exception as error:
-  # rollback pending changes on error
+    # rollback pending changes on error
     db.session.rollback()
     flash('An error occurred. Show could not be listed.')
 
   finally:
-  # close curent session
+    # close curent session
     db.session.close()
 
   return render_template('pages/home.html')
